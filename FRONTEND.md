@@ -31,6 +31,11 @@ pipes, junctions, tank, reservoir and pump. The event model splits pipe 12;
 this intact topology is used by the detector, with the localization limitations
 described in SIMULATOR.md.
 
+The first large forward seek runs all intervening detector calls and can take
+roughly a minute locally; a progress spinner is shown. Already processed
+positions are cached within the browser session. Playback speed is a requested
+rate and depends on detector processing time.
+
 ## Detector integration / handoff to Antoni
 
 `frontend.replay.Replay` calls the existing `ai.detect.LeakDetector` unchanged.
@@ -71,3 +76,17 @@ all four scenarios, verify backward/forward seeking and label isolation, map
 contents and units, and exercise Streamlit controls and missing-model handling.
 Streamlit playback uses its documented fragment API:
 https://docs.streamlit.io/develop/api-reference/execution-flow/st.fragment.
+
+### Local verification (2026-10-17)
+
+- Windows, Python 3.13.4, Streamlit 1.66.0, Plotly 6.9.0.
+- Seven tests passed in 165.93 seconds using the real detector and a model
+  trained from the supplied normal training split.
+- Browser check: network, prediction panel, simulation labels and both charts
+  rendered; Play advanced readings and Pause returned to the Play control.
+- Local server health endpoint returned `ok`.
+- The sandbox emitted a temporary-directory cleanup permission warning after
+  pytest completed successfully (exit code 0).
+- LinuxONE remains untested. Git push was blocked by the environment's Git
+  credential-helper failure. The branch is committed locally; no remote PR
+  was created and Antoni has not yet reviewed the integration.
