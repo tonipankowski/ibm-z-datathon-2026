@@ -1,0 +1,34 @@
+{
+  "normal_holdout": {
+    "total_rows": 1153,
+    "total_alerts": 225,
+    "event_rows": 72,
+    "event_alerts": 0,
+    "event_pipe12": 0,
+    "first_event_alert": null
+  },
+  "leak": {
+    "total_rows": 2017,
+    "total_alerts": 349,
+    "event_rows": 72,
+    "event_alerts": 0,
+    "event_pipe12": 0,
+    "first_event_alert": null
+  },
+  "rupture": {
+    "total_rows": 2017,
+    "total_alerts": 340,
+    "event_rows": 72,
+    "event_alerts": 31,
+    "event_pipe12": 0,
+    "first_event_alert": "{'timestamp': 303000, 'is_anomaly': True, 'severity': 70, 'level': 'yellow', 'suspected_pipe': '113', 'pipe_scores': {'10': np.float64(0.0), '11': np.float64(0.030504549371146078), '111': np.float64(0.0), '12': np.float64(0.40585056228968797), '110': np.float64(0.051397482176951614), '112': np.float64(0.025798754861945217), '113': np.float64(0.4462795842916521), '21': np.float64(0.00010700853506444436), '121': np.float64(0.0), '22': np.float64(0.03994627677537795), '122': np.float64(0.00011578169817468406), '31': np.float64(0.0)}, 'event_type': 'leak', 'explanation': 'Likely leak on pipe 113 (13\u219223), confidence 45%. Flow in pipe 22 rose 246%, flow in pipe 12 rose 337%, flow in pipe 113 fell 372% compared with normal levels. Gradual, localized pattern, unlikely to be a demand spike.'}"
+  },
+  "demand_spike": {
+    "total_rows": 2017,
+    "total_alerts": 309,
+    "event_rows": 72,
+    "event_alerts": 12,
+    "event_pipe12": 0,
+    "first_event_alert": "{'timestamp': 303000, 'is_anomaly': True, 'severity': 76, 'level': 'red', 'suspected_pipe': '31', 'pipe_scores': {'10': np.float64(0.012617151975831712), '11': np.float64(0.02390475662946858), '111': np.float64(0.041600050064063955), '12': np.float64(0.06212286691853641), '110': np.float64(0.021445255530374616), '112': np.float64(0.06271784387247772), '113': np.float64(0.14463320784967468), '21': np.float64(0.08219470053722104), '121': np.float64(0.09896552751357748), '22': np.float64(0.14094573028749882), '122': np.float64(0.14390441636408396), '31': np.float64(0.16494849245719093)}, 'event_type': 'leak', 'explanation': 'Likely leak on pipe 31 (31\u219232), confidence 16%. Flow in pipe 31 rose 37%, flow in pipe 111 rose 20%, flow in pipe 121 rose 47% compared with normal levels. Gradual, localized pattern, unlikely to be a demand spike.'}"
+  }
+}
