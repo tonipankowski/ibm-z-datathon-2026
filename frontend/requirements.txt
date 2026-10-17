@@ -1,0 +1,4 @@
+# Dashboard runtime only. The pipeline has its own existing dependencies.
+streamlit>=1.49,<2
+plotly>=6,<7
+pandas>=2.2,<4

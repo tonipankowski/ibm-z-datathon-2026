@@ -1,0 +1,166 @@
+{
+  "source_sha256": "fc3a1d416c53438a1b6b524ccf81f755790d9ded261e74403123d9053e5ba915",
+  "nodes": {
+    "10": {
+      "type": "junction",
+      "x": 20.0,
+      "y": 70.0
+    },
+    "11": {
+      "type": "junction",
+      "x": 40.0,
+      "y": 70.0
+    },
+    "12": {
+      "type": "junction",
+      "x": 60.0,
+      "y": 70.0
+    },
+    "13": {
+      "type": "junction",
+      "x": 80.0,
+      "y": 70.0
+    },
+    "21": {
+      "type": "junction",
+      "x": 40.0,
+      "y": 40.0
+    },
+    "22": {
+      "type": "junction",
+      "x": 60.0,
+      "y": 40.0
+    },
+    "23": {
+      "type": "junction",
+      "x": 80.0,
+      "y": 40.0
+    },
+    "31": {
+      "type": "junction",
+      "x": 40.0,
+      "y": 10.0
+    },
+    "32": {
+      "type": "junction",
+      "x": 60.0,
+      "y": 10.0
+    },
+    "9": {
+      "type": "reservoir",
+      "x": 10.0,
+      "y": 70.0
+    },
+    "2": {
+      "type": "tank",
+      "x": 90.0,
+      "y": 70.0
+    }
+  },
+  "links": [
+    {
+      "pipe_id": "10",
+      "kind": "pipe",
+      "length": 10560.0,
+      "diameter": 18.0,
+      "start": "10",
+      "end": "11"
+    },
+    {
+      "pipe_id": "9",
+      "kind": "pump",
+      "length": null,
+      "diameter": null,
+      "start": "9",
+      "end": "10"
+    },
+    {
+      "pipe_id": "11",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 14.0,
+      "start": "11",
+      "end": "12"
+    },
+    {
+      "pipe_id": "111",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 10.0,
+      "start": "11",
+      "end": "21"
+    },
+    {
+      "pipe_id": "12",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 10.0,
+      "start": "12",
+      "end": "13"
+    },
+    {
+      "pipe_id": "110",
+      "kind": "pipe",
+      "length": 200.0,
+      "diameter": 18.0,
+      "start": "2",
+      "end": "12"
+    },
+    {
+      "pipe_id": "112",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 12.0,
+      "start": "12",
+      "end": "22"
+    },
+    {
+      "pipe_id": "113",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 8.0,
+      "start": "13",
+      "end": "23"
+    },
+    {
+      "pipe_id": "21",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 10.0,
+      "start": "21",
+      "end": "22"
+    },
+    {
+      "pipe_id": "121",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 8.0,
+      "start": "21",
+      "end": "31"
+    },
+    {
+      "pipe_id": "22",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 12.0,
+      "start": "22",
+      "end": "23"
+    },
+    {
+      "pipe_id": "122",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 6.0,
+      "start": "22",
+      "end": "32"
+    },
+    {
+      "pipe_id": "31",
+      "kind": "pipe",
+      "length": 5280.0,
+      "diameter": 6.0,
+      "start": "31",
+      "end": "32"
+    }
+  ]
+}
