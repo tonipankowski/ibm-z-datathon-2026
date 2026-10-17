@@ -220,3 +220,6 @@ __marimo__/
 .streamlit/secrets.toml
 CLAUDE.md
 *.pem
+
+# Trained model (regenerate with python -m ai.train)
+ai/model.joblib
