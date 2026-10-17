@@ -1,0 +1,99 @@
+{
+  "started_utc": "2026-10-17T20:57:20+00:00",
+  "system": {
+    "hostname": "hackt",
+    "machine": "s390x",
+    "platform": "Linux-6.8.0-147-generic-s390x-with-glibc2.39",
+    "processor": "s390x",
+    "cpu_logical": 3,
+    "cpu_physical": 3,
+    "cpu_max_mhz": null,
+    "ram_total_mb": 8009.0,
+    "psutil": "5.9.8",
+    "python": "3.12.3",
+    "numpy": "1.26.4",
+    "pandas": "2.1.4",
+    "scikit_learn": "1.4.1.post1",
+    "networkx": "3.7",
+    "joblib": "1.3.2"
+  },
+  "rss_mb_start": 149.5,
+  "train": {
+    "data": "data/generated/normal_train.csv",
+    "rows": 864,
+    "repeats": 3,
+    "seconds_median": 0.236,
+    "seconds_min": 0.234,
+    "seconds_all": [
+      0.234,
+      0.236,
+      0.236
+    ],
+    "model_file_kb": 1639.0
+  },
+  "rss_mb_after_train": 159.6,
+  "detect": {
+    "normal_holdout": {
+      "data": "data/generated/normal_holdout.csv",
+      "rows": 1153,
+      "detector_load_seconds": 0.032,
+      "total_seconds": 12.257,
+      "rows_per_second": 94.1,
+      "latency_ms": {
+        "mean": 10.693,
+        "p50": 10.336,
+        "p95": 11.485,
+        "p99": 14.499,
+        "max": 43.376
+      },
+      "alerting_steps": 10
+    },
+    "leak": {
+      "data": "data/generated/leak.csv",
+      "rows": 2017,
+      "detector_load_seconds": 0.032,
+      "total_seconds": 21.631,
+      "rows_per_second": 93.2,
+      "latency_ms": {
+        "mean": 10.75,
+        "p50": 10.345,
+        "p95": 11.898,
+        "p99": 14.58,
+        "max": 56.958
+      },
+      "alerting_steps": 87
+    },
+    "rupture": {
+      "data": "data/generated/rupture.csv",
+      "rows": 2017,
+      "detector_load_seconds": 0.033,
+      "total_seconds": 21.633,
+      "rows_per_second": 93.2,
+      "latency_ms": {
+        "mean": 10.749,
+        "p50": 10.392,
+        "p95": 11.657,
+        "p99": 16.805,
+        "max": 40.945
+      },
+      "alerting_steps": 96
+    },
+    "demand_spike": {
+      "data": "data/generated/demand_spike.csv",
+      "rows": 2017,
+      "detector_load_seconds": 0.032,
+      "total_seconds": 21.55,
+      "rows_per_second": 93.6,
+      "latency_ms": {
+        "mean": 10.71,
+        "p50": 10.342,
+        "p95": 11.488,
+        "p99": 14.538,
+        "max": 42.396
+      },
+      "alerting_steps": 96
+    }
+  },
+  "rss_mb_end": 159.6,
+  "peak_rss_mb": 161.5
+}
