@@ -227,3 +227,6 @@ ai/model.joblib
 # Role 1 generated artifacts
 data/generated/
 Simulation-results.html
+
+# Local sensor-study trained models
+data/sensor_study/models/

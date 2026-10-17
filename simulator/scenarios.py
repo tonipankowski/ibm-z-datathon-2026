@@ -14,7 +14,7 @@ DURATION = 7*86400
 START, END = 3*86400+12*3600, 3*86400+18*3600
 
 
-def build(kind):
+def build(kind, pipe_id="12"):
     raw = (ROOT/'data/Net1.inp').read_text()
     fixed = raw.replace(' Type            Bulk         -0.5','; Type            Bulk         -0.5').replace(' Type            Wall         -1.0','; Type            Wall         -1.0')
     with tempfile.TemporaryDirectory() as d:
@@ -30,7 +30,7 @@ def build(kind):
     w.options.quality.parameter='NONE'
     meta={'scenario':kind,'start_s':START,'end_s':END,'pipe_id':None,'assumptions':True}
     if kind in ('leak','rupture'):
-        w=wntr.morph.split_pipe(w,'12','12_downstream','event_midpoint')
+        w=wntr.morph.split_pipe(w,pipe_id,f'{pipe_id}_downstream','event_midpoint')
         node=w.get_node('event_midpoint')
         w.add_junction('event_outlet',base_demand=0,elevation=node.elevation,coordinates=node.coordinates)
         diameter=0.005 if kind=='leak' else 0.05
@@ -40,9 +40,9 @@ def build(kind):
         w.add_pipe('event_connection','event_midpoint','event_outlet',length=0.01,diameter=1,roughness=140,initial_status='CLOSED')
         for time,status in [(START,1),(END,0)]:
             w.add_control(f'event_{time}',Control(SimTimeCondition(w,'=',time),ControlAction(w.get_link('event_connection'),'status',status)))
-        meta.update(pipe_id='12',hole_diameter_m=diameter,discharge_coefficient=0.62,emitter_coefficient_SI=coeff,
+        meta.update(pipe_id=pipe_id,hole_diameter_m=diameter,discharge_coefficient=0.62,emitter_coefficient_SI=coeff,
                     representation='midpoint orifice with switched low-resistance connector; rupture is a large opening, not full pipe separation',
-                    flow_sensor='F_12 measures upstream half; downstream half retained internally')
+                    flow_sensor=f'F_{pipe_id} measures upstream half; downstream half retained internally')
     elif kind=='demand_spike':
         for name,node in w.junctions():
             for i,ts in enumerate(node.demand_timeseries_list):
@@ -56,9 +56,10 @@ def build(kind):
     return w,meta
 
 
-def run(kind):
-    w,meta=build(kind)
-    out=ROOT/'data/generated'; out.mkdir(parents=True,exist_ok=True)
+def run(kind, pipe_id="12", output_dir=None):
+    w,meta=build(kind, pipe_id)
+    out=Path(output_dir) if output_dir is not None else ROOT/"data/generated"
+    out.mkdir(parents=True,exist_ok=True)
     wntr.network.write_inpfile(w,str(out/f'{kind}.inp'))
     with tempfile.TemporaryDirectory() as d:
         result=wntr.sim.EpanetSimulator(w).run_sim(file_prefix=str(Path(d)/'run'),version=2.2,convergence_error=True)
@@ -71,7 +72,7 @@ def run(kind):
     assert np.isfinite(df.to_numpy()).all()
     active=(df.timestamp>=START)&(df.timestamp<END)&(kind!='normal')
     df['scenario']=np.where(active,kind,'normal')
-    df['leak_pipe']=np.where(active & (kind in ('leak','rupture')),'12','')
+    df['leak_pipe']=np.where(active & (kind in ('leak','rupture')),pipe_id,'')
     df.to_csv(out/f'{kind}.csv',index=False)
     # Separate ground truth; never use actual leakage as an AI input feature.
     truth=pd.DataFrame({'timestamp':df.timestamp,'event_active':active,'leak_flow_m3s':flow['event_connection'].to_numpy() if kind in ('leak','rupture') else 0})
