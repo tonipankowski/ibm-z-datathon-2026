@@ -230,3 +230,6 @@ Simulation-results.html
 
 # Local sensor-study trained models
 data/sensor_study/models/
+
+# Local frontend test and package-install scratch files
+work/
