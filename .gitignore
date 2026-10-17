@@ -227,3 +227,5 @@ ai/model.joblib
 # Role 1 generated artifacts
 data/generated/
 Simulation-results.html
+
+.DS_Store
