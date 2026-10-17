@@ -1,0 +1,99 @@
+{
+  "started_utc": "2026-10-17T20:48:26+00:00",
+  "system": {
+    "hostname": "Zanellato_M",
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "cpu_logical": 20,
+    "cpu_physical": 14,
+    "cpu_max_mhz": 2300,
+    "ram_total_mb": 16074.7,
+    "psutil": "7.2.2",
+    "python": "3.14.2",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scikit_learn": "1.9.1",
+    "networkx": "3.7",
+    "joblib": "1.6.0"
+  },
+  "rss_mb_start": 180.6,
+  "train": {
+    "data": "data\\generated\\normal_train.csv",
+    "rows": 864,
+    "repeats": 3,
+    "seconds_median": 0.412,
+    "seconds_min": 0.411,
+    "seconds_all": [
+      0.453,
+      0.411,
+      0.412
+    ],
+    "model_file_kb": 1639.9
+  },
+  "rss_mb_after_train": 190.6,
+  "detect": {
+    "normal_holdout": {
+      "data": "data\\generated\\normal_holdout.csv",
+      "rows": 1153,
+      "detector_load_seconds": 0.059,
+      "total_seconds": 44.807,
+      "rows_per_second": 25.7,
+      "latency_ms": {
+        "mean": 39.052,
+        "p50": 37.243,
+        "p95": 47.184,
+        "p99": 65.918,
+        "max": 94.587
+      },
+      "alerting_steps": 10
+    },
+    "leak": {
+      "data": "data\\generated\\leak.csv",
+      "rows": 2017,
+      "detector_load_seconds": 0.044,
+      "total_seconds": 78.307,
+      "rows_per_second": 25.8,
+      "latency_ms": {
+        "mean": 38.886,
+        "p50": 37.276,
+        "p95": 46.187,
+        "p99": 59.523,
+        "max": 89.596
+      },
+      "alerting_steps": 87
+    },
+    "rupture": {
+      "data": "data\\generated\\rupture.csv",
+      "rows": 2017,
+      "detector_load_seconds": 0.046,
+      "total_seconds": 76.257,
+      "rows_per_second": 26.5,
+      "latency_ms": {
+        "mean": 37.869,
+        "p50": 37.033,
+        "p95": 43.868,
+        "p99": 56.652,
+        "max": 113.863
+      },
+      "alerting_steps": 96
+    },
+    "demand_spike": {
+      "data": "data\\generated\\demand_spike.csv",
+      "rows": 2017,
+      "detector_load_seconds": 0.044,
+      "total_seconds": 93.382,
+      "rows_per_second": 21.6,
+      "latency_ms": {
+        "mean": 46.37,
+        "p50": 38.68,
+        "p95": 80.635,
+        "p99": 95.461,
+        "max": 174.053
+      },
+      "alerting_steps": 96
+    }
+  },
+  "rss_mb_end": 192.4,
+  "peak_rss_mb": 198.5
+}
