@@ -1,0 +1,98 @@
+{
+  "started_utc": "2026-10-17T17:07:36+00:00",
+  "system": {
+    "hostname": "Zanellato_M",
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "cpu_logical": 20,
+    "cpu_physical": 14,
+    "cpu_max_mhz": 2300,
+    "ram_total_mb": 16074.7,
+    "python": "3.14.2",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scikit_learn": "1.9.1",
+    "networkx": "3.7",
+    "joblib": "1.6.0"
+  },
+  "rss_mb_start": 179.8,
+  "train": {
+    "data": "data\\generated\\normal_train.csv",
+    "rows": 864,
+    "repeats": 3,
+    "seconds_median": 0.302,
+    "seconds_min": 0.301,
+    "seconds_all": [
+      0.367,
+      0.301,
+      0.302
+    ],
+    "model_file_kb": 2470.8
+  },
+  "rss_mb_after_train": 188.8,
+  "detect": {
+    "normal_holdout": {
+      "data": "data\\generated\\normal_holdout.csv",
+      "rows": 1153,
+      "detector_load_seconds": 0.073,
+      "total_seconds": 24.034,
+      "rows_per_second": 48.0,
+      "latency_ms": {
+        "mean": 20.892,
+        "p50": 20.294,
+        "p95": 24.313,
+        "p99": 31.534,
+        "max": 39.939
+      },
+      "alerting_steps": 225
+    },
+    "leak": {
+      "data": "data\\generated\\leak.csv",
+      "rows": 2017,
+      "detector_load_seconds": 0.032,
+      "total_seconds": 43.861,
+      "rows_per_second": 46.0,
+      "latency_ms": {
+        "mean": 21.718,
+        "p50": 20.92,
+        "p95": 26.309,
+        "p99": 36.448,
+        "max": 48.517
+      },
+      "alerting_steps": 349
+    },
+    "rupture": {
+      "data": "data\\generated\\rupture.csv",
+      "rows": 2017,
+      "detector_load_seconds": 0.038,
+      "total_seconds": 44.082,
+      "rows_per_second": 45.8,
+      "latency_ms": {
+        "mean": 21.826,
+        "p50": 21.248,
+        "p95": 26.226,
+        "p99": 32.25,
+        "max": 41.875
+      },
+      "alerting_steps": 340
+    },
+    "demand_spike": {
+      "data": "data\\generated\\demand_spike.csv",
+      "rows": 2017,
+      "detector_load_seconds": 0.034,
+      "total_seconds": 67.015,
+      "rows_per_second": 30.1,
+      "latency_ms": {
+        "mean": 33.213,
+        "p50": 22.006,
+        "p95": 71.748,
+        "p99": 89.645,
+        "max": 141.076
+      },
+      "alerting_steps": 309
+    }
+  },
+  "rss_mb_end": 189.0,
+  "peak_rss_mb": 197.8
+}
