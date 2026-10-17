@@ -229,3 +229,6 @@ data/generated/
 Simulation-results.html
 
 .DS_Store
+
+# Local sensor-study trained models
+data/sensor_study/models/
