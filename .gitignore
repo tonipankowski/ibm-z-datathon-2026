@@ -232,3 +232,6 @@ Simulation-results.html
 
 # Local sensor-study trained models
 data/sensor_study/models/
+
+# Sensor-study models (python -m ai.evaluate_quick --suite sensor_study)
+ai/models/

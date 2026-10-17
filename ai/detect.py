@@ -60,6 +60,19 @@ PRESSURE_FALL_Z = 1.0      # ...by more than 1 sigma since just before the alert
 # Rupture: sudden local pressure fall (beyond the network-wide change) in one step.
 # 10 sigma = 1 m; normal data never exceeds ~1.3 sigma, since pump switching is network-wide.
 RUPTURE_STEP_Z = 10.0
+# Rupture also if the estimated lost flow is large. Orifice law Q = Cd*A*sqrt(2gh) with
+# Cd = 0.62 and h ~ 80 m (Net1 sensor pressures are ~72-88 m): a 5 mm hole loses ~0.48 L/s,
+# a 50 mm hole ~48 L/s. 5 L/s is the midpoint on a log scale, 10x from each (a ~16 mm hole);
+# the +-10% head range moves those flows by only ~5%. Large mains near the tank barely lose
+# pressure even in a burst, so lost flow is the more reliable size signal.
+RUPTURE_FLOW_LPS = 5.0
+
+# --- Ambiguous localization ---
+# Pipes in the same junction's balance get identical mass-balance evidence; only the
+# pressure term separates them. If the runner-up scores >= 80% of the top pipe, that
+# separating evidence is under ~20% of the score, too small to trust against ~1 sigma
+# pressure noise, so the explanation names both pipes.
+AMBIGUOUS_RATIO = 0.8
 
 EPS = 1e-9
 
@@ -163,6 +176,7 @@ class LeakDetector:
         """Forget the anomaly streak and current event (call between independent replays)."""
         self._streak = 0
         self._event_type: str | None = None
+        self.lost_flow_lps = 0.0  # latest estimate of water unaccounted for, in L/s
 
     # ------------------------------------------------------------------ detect
 
@@ -178,6 +192,7 @@ class LeakDetector:
             recent[TIMESTAMP_COL].iloc[-1] if TIMESTAMP_COL in recent else recent.index[-1]
         )
         if len(recent) < self.window:
+            self.lost_flow_lps = 0.0
             return self._result(
                 timestamp, False, 0, None, self._uniform_scores(), "normal",
                 f"Warming up: need {self.window} readings, have {len(recent)}.",
@@ -194,6 +209,7 @@ class LeakDetector:
         row = local.iloc[-1]
 
         severity = max(self._severity(score), self._residual_severity(row))
+        self.lost_flow_lps = self.lost_flow(row)
         self._streak = self._streak + 1 if severity >= YELLOW_AT else 0
         is_anomaly = self._streak >= self.consecutive
 
@@ -244,6 +260,19 @@ class LeakDetector:
             node: sum(sign * row[col] for col, sign in terms) / self._balance_sd[node]
             for node, terms in self._balance_terms.items()
         }
+
+    def lost_flow(self, row: pd.Series) -> float:
+        """Estimated water unaccounted for, in L/s.
+
+        Sum of the extra outflow (m3/s above normal for this time of day) over the
+        junctions whose balance is significantly high (>= Z_ALERT), converted to L/s.
+        For a leak this is the leak flow; for a demand spike, the extra consumption.
+        """
+        total = 0.0
+        for node, z in self.balance_z(row).items():
+            if z >= Z_ALERT:
+                total += max(sum(sign * row[col] for col, sign in self._balance_terms[node]), 0.0)
+        return total * 1000.0
 
     def pressure_z(self, row: pd.Series) -> dict[str, float]:
         """Per pressure junction: local residual in sigmas (negative = lower than normal)."""
@@ -326,7 +355,8 @@ class LeakDetector:
         All thresholds are in residual sigmas.
         - demand_spike: extra water is missing at many junctions with no single hotspot
           (so no pipe dominates), and most junction pressures fell since before the alert.
-        - rupture: some junction's local pressure fell >= RUPTURE_STEP_Z in one step.
+        - rupture: lost flow >= RUPTURE_FLOW_LPS, or some junction's local pressure
+          fell >= RUPTURE_STEP_Z in one step.
         - leak: everything else (a smaller, localized loss).
         pipe_scores is accepted for API compatibility; the junction share test is its
         physical equivalent (a single leaking pipe concentrates the missing water).
@@ -342,6 +372,8 @@ class LeakDetector:
         if hot >= DEMAND_MIN_JUNCTIONS and top_share <= DEMAND_MAX_SHARE and fell >= NETWORK_DROP_SHARE:
             return "demand_spike"
 
+        if self.lost_flow(local.iloc[-1]) >= RUPTURE_FLOW_LPS:
+            return "rupture"
         local_fall = float((-local[pressure].diff() / sd).max().max())
         return "rupture" if local_fall >= RUPTURE_STEP_Z else "leak"
 
@@ -383,24 +415,51 @@ class LeakDetector:
             )
 
         changes = self._top_changes(row)
+        flow = self.lost_flow_lps
         if event_type == "demand_spike":
+            extra = f" About {flow:.1f} L/s more water used than normal." if flow > 0 else ""
             return (
-                f"Likely demand spike across the network (severity {severity}). {changes} "
+                f"Likely demand spike across the network (severity {severity}).{extra} {changes} "
                 "Pressure fell at most junctions with no single hotspot, so this is probably "
                 "higher demand, not a leak."
             )
 
         start, end = self.pipe_ends[suspected_pipe]
         confidence = pipe_scores[suspected_pipe]
-        reason = (
-            "Sudden, large localized pressure drop, consistent with a pipe burst."
-            if event_type == "rupture"
-            else "Gradual, localized pattern, unlikely to be a demand spike."
-        )
-        return (
-            f"Likely {event_type} on pipe {suspected_pipe} ({start}→{end}), "
-            f"confidence {confidence:.0%}. {changes} {reason}"
-        )
+        where = f"pipe {suspected_pipe} ({start}→{end}), confidence {confidence:.0%}."
+        partner = self._ambiguous_partner(pipe_scores)
+        if partner is not None:
+            other, node = partner
+            o_start, o_end = self.pipe_ends[other]
+            where = (
+                f"pipe {suspected_pipe} ({start}→{end}) or {other} ({o_start}→{o_end}), "
+                f"confidence {confidence:.0%} / {pipe_scores[other]:.0%} (both feed junction {node}; "
+                "an extra flow meter would separate them)."
+            )
+        lost = f" About {flow:.1f} L/s unaccounted for." if flow > 0 else ""
+        if event_type == "rupture":
+            reason = (
+                f"Loss above {RUPTURE_FLOW_LPS:g} L/s at one location, consistent with a pipe burst."
+                if flow >= RUPTURE_FLOW_LPS
+                else "Sudden, large localized pressure drop, consistent with a pipe burst."
+            )
+        else:
+            reason = "Small, localized loss, unlikely to be a demand spike."
+        return f"Likely {event_type} on {where}{lost} {changes} {reason}"
+
+    def _ambiguous_partner(self, pipe_scores: dict[str, float]) -> tuple[str, str] | None:
+        """(runner-up pipe, shared junction) if the top two pipes can't be told apart.
+
+        That is when both lie in the same junction's mass balance and the runner-up
+        scores at least AMBIGUOUS_RATIO of the top pipe.
+        """
+        top, second = sorted(pipe_scores, key=pipe_scores.get, reverse=True)[:2]
+        if pipe_scores[second] < AMBIGUOUS_RATIO * pipe_scores[top]:
+            return None
+        for node, pipes in self._balance_pipes.items():
+            if top in pipes and second in pipes:
+                return second, node
+        return None
 
 
 def replay(
