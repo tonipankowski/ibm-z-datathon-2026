@@ -235,3 +235,8 @@ data/sensor_study/models/
 
 # Sensor-study models (python -m ai.evaluate_quick --suite sensor_study)
 ai/models/
+
+# SQLite results database (python -m backend.run_pipeline), incl. WAL side files
+data/aquawatch.db
+data/aquawatch.db-wal
+data/aquawatch.db-shm
