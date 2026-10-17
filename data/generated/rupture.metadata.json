@@ -1,0 +1,23 @@
+{
+  "scenario": "rupture",
+  "start_s": 302400,
+  "end_s": 324000,
+  "pipe_id": "12",
+  "assumptions": true,
+  "hole_diameter_m": 0.05,
+  "discharge_coefficient": 0.62,
+  "emitter_coefficient_SI": 0.005391342409245851,
+  "representation": "midpoint orifice with switched low-resistance connector; rupture is a large opening, not full pipe separation",
+  "flow_sensor": "F_12 measures upstream half; downstream half retained internally",
+  "engine": "EPANET 2.2",
+  "wntr_version": "1.5.0",
+  "duration_s": 604800,
+  "step_s": 300,
+  "rows": 2017,
+  "pressure_unit": "metres of pressure head",
+  "flow_unit": "m3/s, signed",
+  "source": "simulated, not measured",
+  "source_sha256": "fc3a1d416c53438a1b6b524ccf81f755790d9ded261e74403123d9053e5ba915",
+  "csv_sha256": "026a2228fae332a36e31f5cc41d4bde2eafaaee449e6c7ca30b7e5801f7547f8",
+  "minimum_sensor_pressure_m": 71.92864990234375
+}

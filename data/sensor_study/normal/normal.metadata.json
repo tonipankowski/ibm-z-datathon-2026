@@ -1,0 +1,18 @@
+{
+  "scenario": "normal",
+  "start_s": 302400,
+  "end_s": 324000,
+  "pipe_id": null,
+  "assumptions": true,
+  "engine": "EPANET 2.2",
+  "wntr_version": "1.5.0",
+  "duration_s": 604800,
+  "step_s": 300,
+  "rows": 2017,
+  "pressure_unit": "metres of pressure head",
+  "flow_unit": "m3/s, signed",
+  "source": "simulated, not measured",
+  "source_sha256": "fc3a1d416c53438a1b6b524ccf81f755790d9ded261e74403123d9053e5ba915",
+  "csv_sha256": "45f316e6afd7f91cc8df000635127f68733255872e270effae26a08be6ec7221",
+  "minimum_sensor_pressure_m": 71.92864990234375
+}

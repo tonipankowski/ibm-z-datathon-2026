@@ -1,0 +1,20 @@
+{
+  "scenario": "demand_spike",
+  "start_s": 302400,
+  "end_s": 324000,
+  "pipe_id": null,
+  "assumptions": true,
+  "demand_multiplier_during_event": 1.5,
+  "affected_nodes": "all demand junctions",
+  "engine": "EPANET 2.2",
+  "wntr_version": "1.5.0",
+  "duration_s": 604800,
+  "step_s": 300,
+  "rows": 2017,
+  "pressure_unit": "metres of pressure head",
+  "flow_unit": "m3/s, signed",
+  "source": "simulated, not measured",
+  "source_sha256": "fc3a1d416c53438a1b6b524ccf81f755790d9ded261e74403123d9053e5ba915",
+  "csv_sha256": "b87618d51f187c1305d9e5df68e1eecfe66ccb3b361fc2f68381f91c2423ff12",
+  "minimum_sensor_pressure_m": 71.92864990234375
+}

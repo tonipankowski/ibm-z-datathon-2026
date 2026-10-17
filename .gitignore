@@ -223,3 +223,15 @@ CLAUDE.md
 
 # Trained model (regenerate with python -m ai.train)
 ai/model.joblib
+
+# Role 1 generated artifacts
+data/generated/
+Simulation-results.html
+
+.DS_Store
+
+# Local sensor-study trained models
+data/sensor_study/models/
+
+# Sensor-study models (python -m ai.evaluate_quick --suite sensor_study)
+ai/models/
