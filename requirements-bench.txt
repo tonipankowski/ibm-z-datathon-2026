@@ -1,0 +1,10 @@
+# Minimal deps for ai/ (train + detect) and bench/benchmark.py.
+# No streamlit/plotly: streamlit pulls in pyarrow, which has no s390x wheel.
+# Install on LinuxONE with: pip install -r requirements-bench.txt
+pandas
+numpy
+scikit-learn
+networkx
+joblib
+# Optional: richer memory/CPU info. Skip it if it fails to build on s390x.
+psutil

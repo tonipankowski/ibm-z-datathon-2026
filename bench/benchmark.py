@@ -33,8 +33,12 @@ import joblib
 import networkx
 import numpy as np
 import pandas as pd
-import psutil
 import sklearn
+
+try:  # optional: may not build on s390x without a compiler
+    import psutil
+except ImportError:
+    psutil = None
 
 from ai.detect import LeakDetector
 from ai.topology import DEFAULT_INP_PATH
@@ -51,16 +55,23 @@ def _mb(n_bytes: float) -> float:
     return round(n_bytes / 1024 / 1024, 1)
 
 
-def _rss_mb() -> float:
-    """Current resident memory of this process, in MB."""
-    return _mb(psutil.Process().memory_info().rss)
+def _rss_mb() -> float | None:
+    """Current resident memory of this process, in MB (None if unavailable)."""
+    if psutil is not None:
+        return _mb(psutil.Process().memory_info().rss)
+    try:  # Linux without psutil
+        with open("/proc/self/statm") as f:
+            return _mb(int(f.read().split()[1]) * os.sysconf("SC_PAGE_SIZE"))
+    except (OSError, ValueError, AttributeError):
+        return None
 
 
 def _peak_rss_mb() -> float | None:
     """Peak resident memory of this process so far, in MB (None if unavailable)."""
-    info = psutil.Process().memory_info()
-    if hasattr(info, "peak_wset"):  # Windows
-        return _mb(info.peak_wset)
+    if psutil is not None:
+        info = psutil.Process().memory_info()
+        if hasattr(info, "peak_wset"):  # Windows
+            return _mb(info.peak_wset)
     try:
         import resource
     except ImportError:
@@ -72,16 +83,24 @@ def _peak_rss_mb() -> float | None:
 
 def system_info() -> dict[str, Any]:
     """Describe the machine and library versions, so results can be compared fairly."""
-    freq = psutil.cpu_freq()
+    freq = psutil.cpu_freq() if psutil else None
+    if psutil:
+        ram_total = psutil.virtual_memory().total
+    else:
+        try:  # Linux without psutil
+            ram_total = os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")
+        except (ValueError, AttributeError, OSError):
+            ram_total = None
     return {
         "hostname": socket.gethostname(),
         "machine": platform.machine(),  # e.g. AMD64, arm64, s390x
         "platform": platform.platform(),
         "processor": platform.processor() or None,
-        "cpu_logical": psutil.cpu_count(logical=True),
-        "cpu_physical": psutil.cpu_count(logical=False),
+        "cpu_logical": psutil.cpu_count(logical=True) if psutil else os.cpu_count(),
+        "cpu_physical": psutil.cpu_count(logical=False) if psutil else None,
         "cpu_max_mhz": round(freq.max) if freq and freq.max else None,
-        "ram_total_mb": _mb(psutil.virtual_memory().total),
+        "ram_total_mb": _mb(ram_total) if ram_total else None,
+        "psutil": psutil.__version__ if psutil else None,
         "python": platform.python_version(),
         "numpy": np.__version__,
         "pandas": pd.__version__,
@@ -192,8 +211,9 @@ def print_summary(report: dict[str, Any]) -> None:
     sysinfo, tr = report["system"], report["train"]
     print()
     print("=== AquaWatch benchmark ===")
+    ram = f"{sysinfo['ram_total_mb']:.0f} MB" if sysinfo["ram_total_mb"] else "unknown"
     print(f"Machine:   {sysinfo['machine']} | {sysinfo['cpu_logical']} logical CPUs | "
-          f"{sysinfo['ram_total_mb']:.0f} MB RAM | Python {sysinfo['python']}")
+          f"{ram} RAM | Python {sysinfo['python']}")
     print(f"Training:  {tr['seconds_median']:.3f} s median over {tr['repeats']} runs "
           f"({tr['rows']} rows, model {tr['model_file_kb']} KB)")
     print()
