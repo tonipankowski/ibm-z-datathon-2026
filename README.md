@@ -1,5 +1,7 @@
 # ibm-z-datathon-2026
 
+![AquaWatch architecture](docs/AquaWatch_Architecture.png)
+
 ## Database
 
 AquaWatch stores sensor readings and AI alerts in a SQLite file, `data/aquawatch.db` (gitignored). It uses only Python's built-in `sqlite3` module plus pandas: no server, ORM or Docker, so it runs on IBM LinuxONE (s390x). WAL mode lets the dashboard read while the pipeline is still writing.
