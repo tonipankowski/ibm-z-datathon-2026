@@ -41,6 +41,15 @@ RED_ABOVE = 70
 # ~18 checks run every step (at 3 sigma one would trip by chance ~5% of steps).
 Z_ALERT = 4.0
 
+# Only the residual check can confirm an alert; the IsolationForest still raises severity
+# (a yellow "watch" level) but never starts the consecutive streak on its own. On the
+# generated + sensor-study suites the forest added no detections, time to detect or pipe
+# accuracy, but caused nearly all false alerts (~1% of normal steps by its p01 calibration,
+# clustered just after midnight: 3 days of training data hold only 2 midnight crossings).
+# Forest-confirmed alerts: 32 false alerts on the normal holdouts (clean + noisy), 270
+# before events; residual-confirmed: 0 and 1, with identical recall on every case.
+FOREST_CAN_CONFIRM = False
+
 # --- Localization weights (both terms are in sigmas, so directly comparable) ---
 PRESSURE_WEIGHT = 1.0  # local pressure drop at a pipe's end junctions
 FLOW_WEIGHT = 1.0      # extra water "disappearing" at a junction (mass-balance residual)
@@ -102,7 +111,8 @@ class LeakDetector:
     Two detectors run side by side on time-of-day residuals: the IsolationForest
     (unusual combinations of readings) and a residual check (largest junction
     mass-balance / local pressure z-score), which keeps growing with event size
-    where the forest saturates. Severity is the larger of the two.
+    where the forest saturates. Severity is the larger of the two; only the residual
+    check confirms an alert (see FOREST_CAN_CONFIRM).
     """
 
     def __init__(
@@ -175,6 +185,7 @@ class LeakDetector:
     def reset(self) -> None:
         """Forget the anomaly streak and current event (call between independent replays)."""
         self._streak = 0
+        self._forest_only = False
         self._event_type: str | None = None
         self.lost_flow_lps = 0.0  # latest estimate of water unaccounted for, in L/s
 
@@ -208,9 +219,13 @@ class LeakDetector:
         local = residuals(recent, self.profile, self.sensor_cols, scaled=False)
         row = local.iloc[-1]
 
-        severity = max(self._severity(score), self._residual_severity(row))
+        forest_severity = self._severity(score)
+        residual_severity = self._residual_severity(row)
+        severity = max(forest_severity, residual_severity)
+        confirming = severity if FOREST_CAN_CONFIRM else residual_severity
+        self._forest_only = confirming < YELLOW_AT <= forest_severity
         self.lost_flow_lps = self.lost_flow(row)
-        self._streak = self._streak + 1 if severity >= YELLOW_AT else 0
+        self._streak = self._streak + 1 if confirming >= YELLOW_AT else 0
         is_anomaly = self._streak >= self.consecutive
 
         pipe_scores = self.localize(row)
@@ -407,6 +422,12 @@ class LeakDetector:
                 pipe_scores: dict[str, float], severity: int) -> str:
         """Build a short, template-based explanation of the current result."""
         if event_type == "normal":
+            if self._forest_only:
+                return (
+                    f"Unusual pattern flagged by the anomaly model (severity {severity}), but no "
+                    "mass-balance or pressure check is out of range, so no alert. "
+                    f"{self._top_changes(row)}"
+                )
             if self._streak == 0:
                 return "All sensors within normal range."
             return (

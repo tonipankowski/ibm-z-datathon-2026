@@ -7,7 +7,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from frontend.db_view import (
     PIPELINE_COMMAND, runs, timestamps, snapshot, format_time, platform_name,
-    load_layout, network_figure, sensor_figure,
+    alert_status, load_layout, network_figure, sensor_figure,
 )
 DB_PATH = Path(os.environ.get("AQUAWATCH_DB", str(ROOT / "data/aquawatch.db")))
 
@@ -208,14 +208,15 @@ def dashboard():
         if latest is None:
             st.info("No detector result is available at this timestamp yet.")
         else:
-            display = {"red": st.error, "yellow": st.warning, "green": st.success}.get(latest["level"], st.info)
-            display(f"{latest['level'].upper()} · {latest['event_type']} · severity {latest['severity']}/100")
+            headline, event_label, display_name = alert_status(latest)
+            display = getattr(st, display_name)
+            display(f"{headline} · severity {latest['severity']}/100")
 
         st.divider()
         st.header("Water Distribution Network")
         st.caption("EPA EPANET Net1 — Interactive Network Map")
         st.plotly_chart(network_figure(layout, latest), width="stretch", key="network")
-        st.caption("🟢 Junctions | 🔵 Reservoir | 🟣 Tank | 🟠 Pump. Pipe color: detector level; opacity: relative localization weight; thick pipe: suspected pipe. Gray means no result.")
+        st.caption("🟢 Junctions | 🔵 Reservoir | 🟣 Tank | 🟠 Pump. Pipe color: confirmed alert level (green without one); opacity: relative localization weight; thick pipe: suspected pipe. Gray means no result.")
 
         for pressure, heading, prefix in [(True, "Pressure Monitoring", "P_"), (False, "Flow Monitoring", "F_")]:
             st.divider()
@@ -236,11 +237,11 @@ def dashboard():
         if latest is None:
             st.info("Waiting for a detector result.")
         else:
-            display(f"{latest['level'].upper()} — {latest['event_type']}")
+            display(headline)
             cols = st.columns(3)
             cols[0].metric("Suspected pipe", latest["suspected_pipe"] or "None")
             cols[1].metric("Severity", f"{latest['severity']}/100")
-            cols[2].metric("Event type", latest["event_type"])
+            cols[2].metric("Event type", event_label)
             st.write(latest["explanation"])
             st.caption(f"Detector timestamp: {format_time(latest['timestamp'])}. Predictions can contain false alarms; localization weights are not calibrated accuracy.")
         st.caption("AquaWatch | IBM Z Datathon | Simulated data")
