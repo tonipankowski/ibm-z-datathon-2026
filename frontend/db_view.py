@@ -10,6 +10,8 @@ import streamlit as st
 from backend import db
 
 PIPELINE_COMMAND = "python -m backend.run_pipeline --data data/generated/rupture.csv"
+# Must match ai.detect.DATA_WARNING_PREFIX (not imported: no detector imports here).
+DATA_WARNING_PREFIX = "Data warning:"
 
 
 @st.cache_data(ttl=1, max_entries=8, show_spinner=False)
@@ -56,13 +58,17 @@ def platform_name(value):
 def alert_status(alert):
     """(headline, event label, streamlit display name) for a detect() result.
 
-    An elevated but unconfirmed severity is a "watch", not an alert: the detector
-    still reports event_type "normal" then, which reads as a contradiction next to
-    a yellow level.
+    An elevated but unconfirmed severity is not an alert: the detector still reports
+    event_type "normal" then, which reads as a contradiction next to a yellow level.
+    If only the anomaly model flagged it (water balance and pressure normal), it is a
+    data warning: check the sensors or the data. Otherwise the physics check is out of
+    range but not yet for enough steps in a row: a "watch".
     """
     if alert["is_anomaly"]:
         return f"{alert['level'].upper()} · {alert['event_type']}", alert["event_type"], \
             "error" if alert["level"] == "red" else "warning"
+    if alert["explanation"].startswith(DATA_WARNING_PREFIX):
+        return "DATA WARNING · check sensors", "data warning", "info"
     if alert["level"] != "green":
         return "WATCH · unconfirmed, no alert", "unconfirmed", "info"
     return "GREEN · normal", "normal", "success"
@@ -82,7 +88,7 @@ def network_figure(layout, alert):
     fig = go.Figure()
     nodes = layout["nodes"]
     scores = alert["pipe_scores"] if alert else {}
-    # Only a confirmed alert colours the network; an unconfirmed watch stays green.
+    # Only a confirmed alert colours the network; a watch or data warning stays green.
     level = (alert["level"] if alert["is_anomaly"] else "green") if alert else None
     suspected = str(alert["suspected_pipe"]) if alert and alert["suspected_pipe"] is not None else None
     color = {"green": "#22c55e", "yellow": "#eab308", "red": "#ef4444"}.get(level, "#64748b")

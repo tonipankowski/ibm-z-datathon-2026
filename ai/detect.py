@@ -42,13 +42,20 @@ RED_ABOVE = 70
 Z_ALERT = 4.0
 
 # Only the residual check can confirm an alert; the IsolationForest still raises severity
-# (a yellow "watch" level) but never starts the consecutive streak on its own. On the
+# (a yellow data warning, see DATA_WARNING_PREFIX) but never starts the consecutive streak. On the
 # generated + sensor-study suites the forest added no detections, time to detect or pipe
 # accuracy, but caused nearly all false alerts (~1% of normal steps by its p01 calibration,
 # clustered just after midnight: 3 days of training data hold only 2 midnight crossings).
 # Forest-confirmed alerts: 32 false alerts on the normal holdouts (clean + noisy), 270
 # before events; residual-confirmed: 0 and 1, with identical recall on every case.
 FOREST_CAN_CONFIRM = False
+
+# Explanations of forest-only steps (model flags an unusual pattern, physics checks are
+# quiet) start with this. The output schema has no field for it, so frontend/db_view.py
+# keys its "DATA WARNING" display on this prefix; keep the two in sync.
+DATA_WARNING_PREFIX = "Data warning:"
+# Plain-language names of build_features() feature kinds, for data-warning explanations.
+FEATURE_KIND_NAMES = {"rmean": "level", "rstd": "variability", "diff": "step change", "dev": "vs recent mean"}
 
 # --- Localization weights (both terms are in sigmas, so directly comparable) ---
 PRESSURE_WEIGHT = 1.0  # local pressure drop at a pipe's end junctions
@@ -108,11 +115,15 @@ def _to_builtin(value: Any) -> Any:
 class LeakDetector:
     """Scores sensor windows and localizes the likely pipe.
 
-    Two detectors run side by side on time-of-day residuals: the IsolationForest
-    (unusual combinations of readings) and a residual check (largest junction
-    mass-balance / local pressure z-score), which keeps growing with event size
-    where the forest saturates. Severity is the larger of the two; only the residual
-    check confirms an alert (see FOREST_CAN_CONFIRM).
+    Hybrid design: physics confirms leaks and localizes the pipe; ML flags unusual
+    sensor patterns as data warnings. Both run on time-of-day residuals. The residual
+    check (junction mass balance + local pressure z-scores) is the only path to a
+    leak alert, and it also sizes the loss and picks the pipe. The IsolationForest
+    looks for unusual combinations of readings; when it fires but no water is missing
+    and pressures are normal, the result is a data warning ("check the sensors or the
+    data"), never a leak alert. In our evaluation the forest did not detect leaks
+    earlier or more often than the physics check, so it is not used for that.
+    Severity is the larger of the two scores (see FOREST_CAN_CONFIRM).
     """
 
     def __init__(
@@ -186,6 +197,7 @@ class LeakDetector:
         """Forget the anomaly streak and current event (call between independent replays)."""
         self._streak = 0
         self._forest_only = False
+        self._forest_z: np.ndarray | None = None  # latest standardized forest features
         self._event_type: str | None = None
         self.lost_flow_lps = 0.0  # latest estimate of water unaccounted for, in L/s
 
@@ -210,8 +222,9 @@ class LeakDetector:
             )
 
         feats = build_features(recent, self.window, self.sensor_cols, self.profile)
-        X = feats[self.feature_cols].iloc[[-1]].to_numpy(dtype=float)
-        score = float(self.model.decision_function(self.scaler.transform(X))[0])
+        X = self.scaler.transform(feats[self.feature_cols].iloc[[-1]].to_numpy(dtype=float))
+        self._forest_z = X[0]
+        score = float(self.model.decision_function(X)[0])
 
         # Residuals vs the normal value for this time of day, in sensor units:
         # `tod` keeps network-wide shifts, `local` removes them (see train.residuals).
@@ -418,15 +431,32 @@ class LeakDetector:
         text = ", ".join(phrase for _, phrase in ranked[:n])
         return text[:1].upper() + text[1:] + " for this time of day."
 
+    def _forest_suspects(self, n: int = 3) -> str:
+        """The n sensors the anomaly model's input deviates most on, e.g. "P_22 (level +4.1σ)".
+
+        Per sensor, its most extreme standardized feature (level, variability, step
+        change, deviation from recent mean), in sigmas of normal training data.
+        """
+        best: dict[str, tuple[float, str]] = {}
+        for name, z in zip(self.feature_cols, self._forest_z):
+            sensor, kind = name.rsplit("_", 1)
+            if sensor not in best or abs(z) > abs(best[sensor][0]):
+                best[sensor] = (float(z), kind)
+        top = sorted(best.items(), key=lambda kv: abs(kv[1][0]), reverse=True)[:n]
+        return ", ".join(
+            f"{sensor} ({FEATURE_KIND_NAMES.get(kind, kind)} {z:+.1f}σ)".replace("-", "−")
+            for sensor, (z, kind) in top
+        )
+
     def explain(self, row: pd.Series, event_type: str, suspected_pipe: str | None,
                 pipe_scores: dict[str, float], severity: int) -> str:
         """Build a short, template-based explanation of the current result."""
         if event_type == "normal":
             if self._forest_only:
                 return (
-                    f"Unusual pattern flagged by the anomaly model (severity {severity}), but no "
-                    "mass-balance or pressure check is out of range, so no alert. "
-                    f"{self._top_changes(row)}"
+                    f"{DATA_WARNING_PREFIX} the anomaly model flags an unusual sensor pattern "
+                    f"(severity {severity}), but water balance and pressure are normal, so no "
+                    f"leak alert. Check sensors: {self._forest_suspects()}."
                 )
             if self._streak == 0:
                 return "All sensors within normal range."
