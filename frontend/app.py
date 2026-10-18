@@ -38,18 +38,18 @@ h1, h2, h3 {
 }
 
 div[data-testid="stMetric"] {
-    background-color: #162238;
+    background-color: #FFFFFF;
     padding: 18px;
-    border: 1px solid #293A54;
+    border: 1px solid #CBD5E1;
     border-radius: 12px;
 }
 
 div[data-testid="stMetricLabel"] {
-    color: #94A3B8;
+    color: #475569;
 }
 
 div[data-testid="stMetricValue"] {
-    color: #F8FAFC;
+    color: #0F172A;
 }
 </style>
 """, unsafe_allow_html=True)

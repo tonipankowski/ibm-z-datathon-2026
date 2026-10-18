@@ -49,8 +49,9 @@ regenerate in the existing backend environment with:
 python -m frontend.export_layout
 ```
 
-The existing dark cards, header, sidebar and full-width map/chart layout are
-retained. Pipe hue shows the latest detector level, opacity shows relative
+The dashboard uses a light theme with white cards and charts, dark text, and a
+light sidebar. The header and full-width map/chart layout are retained.
+Launch Streamlit from the repository root so `.streamlit/config.toml` is loaded. Pipe hue shows the latest detector level, opacity shows relative
 pipe score, and thickness highlights the suspected pipe. Charts use simulated
 pressure in metres of head and signed flow in m³/s. Red shading represents
 stored detector anomalies, not event ground truth. False alarms and confidence

@@ -119,11 +119,11 @@ def network_figure(layout, alert):
             mode="markers+text", marker=dict(size=size, color=node_color, symbol=symbol, line=dict(color="white", width=2)),
             text=[n if kind == "junction" else f"{name} {n}" for n in ids], textposition="top center",
             name=name, hovertemplate=f"{name} %{{text}}<extra></extra>"))
-    fig.update_layout(height=460, paper_bgcolor="#0f172a", plot_bgcolor="#0f172a", font=dict(color="white"),
+    fig.update_layout(height=460, template="plotly_white", paper_bgcolor="#ffffff", plot_bgcolor="#ffffff", font=dict(color="#0f172a"),
         margin=dict(l=20, r=20, t=30, b=65), xaxis=dict(visible=False),
         yaxis=dict(visible=False, scaleanchor="x", scaleratio=1),
         legend=dict(orientation="h", x=.5, xanchor="center", y=-.12, yanchor="top",
-                    bgcolor="rgba(15,23,42,0.95)", font=dict(color="white", size=13)))
+                    bgcolor="rgba(255,255,255,0.95)", font=dict(color="#0f172a", size=13)))
     return fig
 
 
@@ -148,13 +148,13 @@ def anomaly_intervals(readings, anomalies):
 def sensor_figure(readings, anomalies, sensor, pressure):
     unit = "Pressure (metres of head)" if pressure else "Flow (m³/s, signed)"
     fig = go.Figure(go.Scatter(x=readings.timestamp, y=readings[sensor], mode="lines",
-                               name=sensor, line=dict(color="#22c55e" if pressure else "#38bdf8", width=3)))
+                               name=sensor, line=dict(color="#15803d" if pressure else "#0369a1", width=3)))
     for start, end in anomaly_intervals(readings, anomalies):
         if start == end:
             fig.add_vline(x=start, line_color="#ef4444", line_width=2)
         else:
             fig.add_vrect(x0=start, x1=end, fillcolor="#ef4444", opacity=.15, line_width=0)
-    fig.update_layout(title=f"Simulated {'pressure' if pressure else 'flow'} · {sensor}",
+    fig.update_layout(template="plotly_white", paper_bgcolor="#ffffff", plot_bgcolor="#ffffff", font=dict(color="#0f172a"), title=f"Simulated {'pressure' if pressure else 'flow'} · {sensor}",
         xaxis_title="Elapsed time (seconds)", yaxis_title=unit, height=380,
         legend=dict(orientation="h", y=1.15))
     return fig
