@@ -53,6 +53,21 @@ def platform_name(value):
     return "IBM LinuxONE (s390x)" if value == "s390x" else str(value)
 
 
+def alert_status(alert):
+    """(headline, event label, streamlit display name) for a detect() result.
+
+    An elevated but unconfirmed severity is a "watch", not an alert: the detector
+    still reports event_type "normal" then, which reads as a contradiction next to
+    a yellow level.
+    """
+    if alert["is_anomaly"]:
+        return f"{alert['level'].upper()} · {alert['event_type']}", alert["event_type"], \
+            "error" if alert["level"] == "red" else "warning"
+    if alert["level"] != "green":
+        return "WATCH · unconfirmed, no alert", "unconfirmed", "info"
+    return "GREEN · normal", "normal", "success"
+
+
 def load_layout(root):
     # Exported using ai.topology.load_network. The checked source hash prevents
     # a changed INP from silently displaying an obsolete layout. This avoids a
@@ -67,7 +82,8 @@ def network_figure(layout, alert):
     fig = go.Figure()
     nodes = layout["nodes"]
     scores = alert["pipe_scores"] if alert else {}
-    level = alert["level"] if alert else None
+    # Only a confirmed alert colours the network; an unconfirmed watch stays green.
+    level = (alert["level"] if alert["is_anomaly"] else "green") if alert else None
     suspected = str(alert["suspected_pipe"]) if alert and alert["suspected_pipe"] is not None else None
     color = {"green": "#22c55e", "yellow": "#eab308", "red": "#ef4444"}.get(level, "#64748b")
     peak = max(scores.values(), default=0)
