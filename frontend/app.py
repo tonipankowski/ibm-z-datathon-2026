@@ -22,46 +22,71 @@ st.set_page_config(
     layout="wide"
 )
 
-# Dashboard title
-
-# Professional dashboard header
+# Explicit colors also cover a browser with a previously saved dark preference.
 st.markdown("""
 <style>
-.block-container {
-    padding-top: 1.5rem;
-    padding-bottom: 2rem;
-    max-width: 1500px;
+:root { color-scheme: light !important; }
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+    background: #f5f8fc !important; color: #172b45 !important;
 }
-
-h1, h2, h3 {
-    letter-spacing: -0.5px;
+[data-testid="stHeader"] { background: #f5f8fc !important; }
+[data-testid="stSidebar"] { background: #ffffff !important; border-right: 1px solid #e2e9f1; }
+[data-testid="stSidebarContent"] { background: #ffffff !important; }
+.block-container { padding-top: 2rem; padding-bottom: 3rem; max-width: 1440px; }
+[data-testid="stMarkdownContainer"], [data-testid="stWidgetLabel"],
+[data-testid="stMetricLabel"], [data-testid="stMetricLabel"] p,
+[data-testid="stSidebar"] p, label { color: #475569 !important; }
+h1, h2, h3 { color: #172b45 !important; letter-spacing: -.035em; }
+h2 { font-size: 1.45rem !important; font-weight: 650 !important; padding-top: .3rem !important; }
+h3 { font-size: 1.1rem !important; }
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p { color: #64748b !important; }
+hr { border-color: #e2e9f1 !important; margin: 1.5rem 0 !important; }
+[data-testid="stMetric"] {
+    background: #ffffff; padding: 20px; border: 1px solid #e2e9f1;
+    border-radius: 14px; box-shadow: 0 3px 12px rgba(23,43,69,.035);
+    border-top: 3px solid #0891b2;
 }
-
-div[data-testid="stMetric"] {
-    background-color: #FFFFFF;
-    padding: 18px;
-    border: 1px solid #CBD5E1;
-    border-radius: 12px;
+[data-testid="stMetricValue"], [data-testid="stMetricValue"] div {
+    color: #172b45 !important; font-size: 1.8rem !important; font-weight: 650;
 }
-
-div[data-testid="stMetricLabel"] {
-    color: #475569;
+[data-testid="stMetricLabel"] p { font-size: .82rem !important; font-weight: 550; }
+[data-baseweb="select"] > div, [data-baseweb="input"], input {
+    background: #ffffff !important; color: #172b45 !important; border-color: #cbd5e1 !important;
 }
-
-div[data-testid="stMetricValue"] {
-    color: #0F172A;
+[data-baseweb="select"] span, [data-baseweb="select"] input { color: #172b45 !important; }
+[data-baseweb="popover"], [role="listbox"], [role="option"] {
+    background: #ffffff !important; color: #172b45 !important;
 }
+[data-testid="stSlider"] { color: #475569 !important; }
+[data-testid="stSlider"] [data-testid="stTickBar"] { color: #475569 !important; }
+button[kind="secondary"], button[kind="header"] {
+    background: #ffffff !important; color: #172b45 !important; border-color: #cbd5e1 !important;
+}
+button[kind="secondary"] p { color: #172b45 !important; }
+button[kind="primary"] { background: #0369a1 !important; border-color: #0369a1 !important; }
+button[kind="primary"] p { color: #ffffff !important; }
+[data-testid="stAlert"] { background: #eaf4fa !important; color: #173e59 !important; border-radius: 12px; }
+[data-testid="stPlotlyChart"] { background: #ffffff; border: 1px solid #e2e9f1; border-radius: 14px; overflow: hidden; }
+.aw-hero { display:flex; align-items:center; gap:16px; margin: 0 0 20px; }
+.aw-mark { display:grid; place-items:center; width:52px; height:52px; flex-shrink:0;
+    border-radius:16px; background:linear-gradient(145deg,#0284c7,#0891b2); color:white; font-size:28px; }
+.aw-eyebrow { color:#0369a1; font-size:.7rem; text-transform:uppercase; letter-spacing:.14em; font-weight:700; }
+.aw-title { color:#172b45; font-size:2.25rem; line-height:1.2; font-weight:750; letter-spacing:-.05em; }
+.aw-subtitle { color:#64748b; font-size:.95rem; margin-top:4px; }
+.aw-note { background:#eaf3f9; border:1px solid #d5e7f2; color:#436176; border-radius:10px;
+    padding:12px 16px; font-size:.8rem; line-height:1.6; }
+@media(max-width:640px) { .aw-title {font-size:1.8rem;} .block-container {padding-top:1rem;} }
 </style>
+<div class="aw-hero">
+  <div class="aw-mark">≈</div>
+  <div><div class="aw-eyebrow">Water network intelligence</div>
+    <div class="aw-title">AquaWatch</div>
+    <div class="aw-subtitle">Monitor pressure. Detect anomalies. Prioritize inspection.</div>
+  </div>
+</div>
+<div class="aw-note"><strong>SIMULATION WORKSPACE</strong> &nbsp;·&nbsp; EPA EPANET Net1 &nbsp;·&nbsp; IBM Z Datathon 2026<br>
+Pressure in metres of head · Flow in m³/s. Detector confidence is a heuristic, not proven accuracy.</div>
 """, unsafe_allow_html=True)
-
-st.title("💧 AquaWatch")
-st.markdown(
-    "**Intelligent Water Infrastructure Monitoring**"
-)
-st.caption(
-    "IBM Z Datathon 2026  •  EPA EPANET Net1  •  Prototype Dashboard"
-)
-
 
 # Sidebar navigation (original visual structure retained).
 with st.sidebar:
@@ -85,7 +110,7 @@ with st.sidebar:
     st.write("Mode: Simulated data")
     st.write("Backend: SQLite pipeline results")
 
-st.caption("SIMULATED DATA · Pressure in metres of head · Flow in m³/s. Detector confidence is a heuristic, not proven accuracy.")
+
 
 
 def no_data(message):
